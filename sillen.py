@@ -1,3 +1,9 @@
+"""
+This script defines a function, `plot_sillen`, which generates a Sillén diagram for acids with n dissociable protons. 
+The Sillén diagram is based on their respective pKa values and initial concentration C. It uses the `Acid` class 
+from the 'acid' module for calculations.
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -7,8 +13,18 @@ from acid import Acid
 
 def plot_sillen(pKa, C, pH_range=np.linspace(0, 14, 100)):
     """
-    Plots sillén diagram for acid n dissociable protons given their respective pKa values
+    Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
     and initial concentration C.
+
+    Args:
+        pKa (list of float): List of pKa values for the acid.
+        C (float): Initial acid concentration.
+        pH_range (numpy.ndarray, optional): pH values for the x-axis (default is a range from 0 to 14).
+
+    The function generates a Sillén diagram showing the pH-dependent concentration of species with different protonation states.
+
+    Example:
+    plot_sillen([3.13, 4.76, 6.4], 1)
     """
 
     # create acid object
