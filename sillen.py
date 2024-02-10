@@ -54,18 +54,22 @@ def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
     colors = sns.color_palette("tab10", sum(
         [len(acid.pKa) for acid in acids]) + 1)
 
+    # # Choose the "viridis" color map from Matplotlib
+    # colors = plt.cm.viridis(np.linspace(
+    #     0, 1, sum([len(acid.pKa) for acid in acids]) + 1))
+
     for acid in acids:
         # create list of concentrations for each protonation state
         for i in range(len(acid.pKa)+1):
             logc = [acid.logc(i, pH) for pH in pH_range]
             ax.plot(pH_range, logc, label=acid.__repr__(i), color=colors[i])
 
-        # plot H, and OH
-        ax.plot(pH_range, [-pH for pH in pH_range],
-                linewidth=0.5, label='$H^+$', color='black')
+    # plot H, and OH
+    ax.plot(pH_range, [-pH for pH in pH_range],
+            linewidth=0.5, label='$H^+$', color='black')
 
-        ax.plot(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
-                label='$OH^-$', color='black')
+    ax.plot(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
+            label='$OH^-$', color='black')
 
     # ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1), borderaxespad=0.0)
     ax.legend(bbox_to_anchor=(1, 1), loc=2, frameon=False, fontsize=16)
