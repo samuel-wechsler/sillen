@@ -3,6 +3,10 @@
 This script defines an Acid class to model the behavior of acids in a solution. It includes methods to calculate
 the fraction of acid dissociation, concentration of species with specific protonation states, and more.
 
+For the formula used in the `alpha` method, please refer to the source:
+Gambi, A., Toniolo, R. Acid–base logarithmic diagrams with computer algebra systems.
+ChemTexts 2, 9 (2016). https://doi.org/10.1007/s40828-016-0029-1
+
 Author: Samuel Wechsler
 """
 import matplotlib.pyplot as plt
