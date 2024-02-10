@@ -3,32 +3,38 @@
 This script defines an Acid class to model the behavior of acids in a solution. It includes methods to calculate
 the fraction of acid dissociation, concentration of species with specific protonation states, and more.
 
-For the formula used in the `alpha` method, please refer to the source:
-"Insert Source Reference Here" (DOI 10.1007/s40828-016-0029-1)
-
 Author: Samuel Wechsler
 """
 import matplotlib.pyplot as plt
 import numpy as np
 from math import pow
+import sympy as sp
 
 # define constants
 K_w = 10**-14
 
 
 class Acid:
-    def __init__(self, pKa, C):
+    def __init__(self, pKa, C, name="A", charge=0):
         """
         Initialize an Acid object.
 
         Args:
             pKa (list of float): List of pKa values for the acid.
             C (float): Initial acid concentration.
+            name (str): name of acid.
         """
         # TODO: check if pKa is a list, etc.
         self.pKa = pKa
         self.Ka = [10**(-pKa[i]) for i in range(len(pKa))]
         self.C = C
+
+        # check if string input is valid
+        if "$" in name:
+            raise Exception(
+                "Invalid character in acid name. Please avoid using '$' as it may not render properly.")
+        self.name = name
+        self.charge = charge
 
     def alpha(self, i, pH):
         """
@@ -79,12 +85,27 @@ class Acid:
             str: Representation of the acid species.
         """
         n = len(self.pKa)
-        if i == 0:
-            return f"$H_{n}A$"
-        if i == n:
-            return f"$A^{{{-(n)}}}$"
+        protons = n - i  # number of protons
+        charge = self.charge + protons  # charge of species
 
-        return f"$H_{{{n - i}}}A^{{{-i}}}$"
+        # define charge symbols
+        charge_symbols = {
+            0: "",
+            1: "+",
+            -1: "-",
+        }
+
+        # format charge
+        charge_str = charge_symbols.get(
+            charge, str(abs(charge)) + ("+" if charge > 0 else "-")
+        )
+
+        if protons == 0:
+            return f"${self.name}^{{{charge_str}}}$"
+        elif protons == 1:
+            return f"$H{sp.latex(sp.sympify(self.name))}^{{{charge_str}}}$"
+        else:
+            return f"$H_{protons}{sp.latex(sp.sympify(self.name))}^{{{charge_str}}}$"
 
     def c(self, i, pH):
         """

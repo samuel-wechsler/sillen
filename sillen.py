@@ -11,7 +11,7 @@ import numpy as np
 from acid import Acid
 
 
-def plot_sillen(pKa, C, pH_range=np.linspace(0, 14, 100)):
+def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
     """
     Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
     and initial concentration C.
@@ -22,13 +22,9 @@ def plot_sillen(pKa, C, pH_range=np.linspace(0, 14, 100)):
         pH_range (numpy.ndarray, optional): pH values for the x-axis (default is a range from 0 to 14).
 
     The function generates a Sillén diagram showing the pH-dependent concentration of species with different protonation states.
-
-    Example:
-    plot_sillen([3.13, 4.76, 6.4], 1)
     """
-
-    # create acid object
-    acid = Acid(pKa, C)
+    if not isinstance(acids, list):
+        acids = [acids]
 
     # create plot
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -42,8 +38,10 @@ def plot_sillen(pKa, C, pH_range=np.linspace(0, 14, 100)):
     ax.set_aspect('equal')
 
     # Set the grid properties
-    ax.grid(True, which='major', linestyle='-', linewidth=0.5, color='black')
-    ax.grid(True, which='minor', linestyle='--', linewidth=0.2, color='gray')
+    ax.grid(True, which='major', linestyle='-',
+            linewidth=0.5, color='black')
+    ax.grid(True, which='minor', linestyle='--',
+            linewidth=0.2, color='gray')
     ax.minorticks_on()
 
     # Major grid for integer values on the y-axis
@@ -53,24 +51,28 @@ def plot_sillen(pKa, C, pH_range=np.linspace(0, 14, 100)):
     ax.set_facecolor('#f0f0f0')
 
     # Choose a color palette from Seaborn
-    colors = sns.color_palette("tab10", len(acid.Ka)+1)
+    colors = sns.color_palette("tab10", sum(
+        [len(acid.pKa) for acid in acids]) + 1)
 
-    # create list of concentrations for each protonation state
-    for i in range(len(pKa)+1):
-        logc = [acid.logc(i, pH) for pH in pH_range]
-        ax.plot(pH_range, logc, label=acid.__repr__(i), color=colors[i])
+    for acid in acids:
+        # create list of concentrations for each protonation state
+        for i in range(len(acid.pKa)+1):
+            logc = [acid.logc(i, pH) for pH in pH_range]
+            ax.plot(pH_range, logc, label=acid.__repr__(i), color=colors[i])
 
-    # plot H, and OH
-    ax.plot(pH_range, [-pH for pH in pH_range],
-            linewidth=0.5, label='$H^+$', color='black')
+        # plot H, and OH
+        ax.plot(pH_range, [-pH for pH in pH_range],
+                linewidth=0.5, label='$H^+$', color='black')
 
-    ax.plot(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
-            label='$OH^-$', color='black')
+        ax.plot(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
+                label='$OH^-$', color='black')
 
-    #ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1), borderaxespad=0.0)
+    # ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1), borderaxespad=0.0)
     ax.legend(bbox_to_anchor=(1, 1), loc=2, frameon=False, fontsize=16)
 
     plt.show()
 
 
-plot_sillen([3.13, 4.76, 6.4], 1)
+# a = Acid([4.75, 8.4, 12.3, 13.5], 0.1, name="A")
+b = Acid([3.13, 4.76, 6.4], 0.1, name=f"PO4", charge=-3)
+plot_sillen([b])
