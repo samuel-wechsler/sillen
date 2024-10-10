@@ -7,6 +7,7 @@ from the 'acid' module for calculations.
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import re
 import interplot as ip
 
 from acid import Acid
@@ -103,38 +104,56 @@ def plot_sillen_interactive(
     if not isinstance(acids, list):
         acids = [acids]
 
+    def mpl_grid(fig, ax):
+        ax[0,0].grid(True, which='major', linestyle='-',
+                linewidth=0.5, color='black')
+        ax[0,0].grid(True, which='minor', linestyle='--',
+                linewidth=0.2, color='gray')
+        ax[0,0].xaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0,0].yaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0,0].xaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        ax[0,0].yaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        return fig, ax
+
     # create plot
-    fig = ip.Plot.init(
+    args = dict(
         fig=fig,
+        title="Sillén diagram",
         xlabel="pH",
         ylabel="log[Spezies]",
         xlim=(0, 14),
         ylim=(-14, 0),
-        **kwargs,
+        mpl_custom_func=mpl_grid
+    )
+    args.update(kwargs)
+    fig = ip.Plot.init(
+        **args
     )
 
-    # plot H, and OH
-    fig.add_line(pH_range, [-pH for pH in pH_range],
-            linewidth=0.5, label='H+', color='black')
+    phg_left = [10**-pH for pH in pH_range]
+    phg_right = [10**(-14 + pH) for pH in pH_range]
 
     for acid, deprot_level in ip.zip_smart(acids, deprot_levels):
-        phg_left = [10**-pH for pH in pH_range]
-        phg_right = [10**(-14 + pH) for pH in pH_range]
         # create list of concentrations for each protonation state
         for i in range(len(acid.pKa)+1):
             logc = [acid.logc(i, pH) for pH in pH_range]
-            fig.add_line(pH_range, logc, label=acid.__repr__(i)[1:-1])
+            fig.add_line(pH_range, logc, label=re.sub(r'[{}_^$]?(:?\\mathrm)?', r'', acid.__repr__(i)))
             if deprot_level is not None and i < deprot_level:
                 phg_left += 10**np.array(logc)
             if deprot_level is not None and i > deprot_level:
                 phg_right += 10**np.array(logc)
 
-        if deprot_level is not None:
-            fig.add_line(pH_range, np.log10(phg_left), label='PHG left side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="red")
-            fig.add_line(pH_range, np.log10(phg_right), label='PHG right side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="blue")
+    if deprot_levels is not None:
+        fig.add_line(pH_range, np.log10(phg_left), label='PHG left side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="blue")
+        fig.add_line(pH_range, np.log10(phg_right), label='PHG right side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="red")
 
+    # plot H, and OH
+    fig.add_line(pH_range, [-pH for pH in pH_range],
+            linewidth=0.5, label='H+', color='black')
     fig.add_line(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
             label='OH-', color='black')
+
+    fig.post_process()
 
     return fig
 

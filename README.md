@@ -5,6 +5,8 @@
 
 2. `sillen_diagram.py`: A Python script that uses the `Acid` class to generate Sillén diagrams for acids with n dissociable protons based on their pKa values and initial concentrations.
 
+3. `use_sillen.ipynb`: Open this in a Jupyter environment (or on (MyBinder)[https://mybinder.org/v2/gh/janjoch/sillen/HEAD?labpath=use_sillen.ipynb] to start plotting immediately.)
+
 ## Getting Started
 
 ### Prerequisites
@@ -15,3 +17,5 @@ You can install the dependencies using pip:
 
 ```bash
 pip install -r requirements.txt
+
+![sillen diagram example](ex24_e.png)
