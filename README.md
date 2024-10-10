@@ -18,4 +18,4 @@ You can install the dependencies using pip:
 ```bash
 pip install -r requirements.txt
 
-![sillen diagram example](ex24_e.png)
+![sillen diagram example](https://github.com/janjoch/sillen/blob/main/ex24_e.png?raw=true)
