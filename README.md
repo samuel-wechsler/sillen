@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/janjoch/sillen/HEAD?labpath=use_sillen.ipynb)
+
 # Sillén
 1. `acid.py`: A Python module that defines the `Acid` class for modeling equlibirum behaviour of polyprotic acids.
 

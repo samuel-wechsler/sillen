@@ -7,8 +7,13 @@ from the 'acid' module for calculations.
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import interplot as ip
 
 from acid import Acid
+
+
+PHG_LINEWIDTH = 10
+PHG_OPACITY = 0.4
 
 
 def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
@@ -77,6 +82,64 @@ def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
     plt.show()
 
 
+def plot_sillen_interactive(
+    acids,
+    deprot_levels=None,
+    pH_range=np.linspace(0, 14, 100),
+    fig=None,
+    **kwargs,
+):
+    """
+    Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
+    and initial concentration C.
+
+    Args:
+        pKa (list of float): List of pKa values for the acid.
+        C (float): Initial acid concentration.
+        pH_range (numpy.ndarray, optional): pH values for the x-axis (default is a range from 0 to 14).
+
+    The function generates a Sillén diagram showing the pH-dependent concentration of species with different protonation states.
+    """
+    if not isinstance(acids, list):
+        acids = [acids]
+
+    # create plot
+    fig = ip.Plot.init(
+        fig=fig,
+        xlabel="pH",
+        ylabel="log[Spezies]",
+        xlim=(0, 14),
+        ylim=(-14, 0),
+        **kwargs,
+    )
+
+    # plot H, and OH
+    fig.add_line(pH_range, [-pH for pH in pH_range],
+            linewidth=0.5, label='H+', color='black')
+
+    for acid, deprot_level in ip.zip_smart(acids, deprot_levels):
+        phg_left = [10**-pH for pH in pH_range]
+        phg_right = [10**(-14 + pH) for pH in pH_range]
+        # create list of concentrations for each protonation state
+        for i in range(len(acid.pKa)+1):
+            logc = [acid.logc(i, pH) for pH in pH_range]
+            fig.add_line(pH_range, logc, label=acid.__repr__(i)[1:-1])
+            if deprot_level is not None and i < deprot_level:
+                phg_left += 10**np.array(logc)
+            if deprot_level is not None and i > deprot_level:
+                phg_right += 10**np.array(logc)
+
+        if deprot_level is not None:
+            fig.add_line(pH_range, np.log10(phg_left), label='PHG left side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="red")
+            fig.add_line(pH_range, np.log10(phg_right), label='PHG right side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="blue")
+
+    fig.add_line(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
+            label='OH-', color='black')
+
+    return fig
+
 # a = Acid([4.75, 8.4, 12.3, 13.5], 0.1, name="A")
-b = Acid([3.13, 4.76, 6.4], 0.1, name=f"PO4", charge=-3)
-plot_sillen([b])
+b = Acid([3.13, 4.76, 6.4], 0.1, name="PO4", charge=-3)
+
+if __name__ == "__main__":
+    plot_sillen([b])
