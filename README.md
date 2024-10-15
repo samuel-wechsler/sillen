@@ -20,4 +20,4 @@ You can install the dependencies using pip:
 pip install -r requirements.txt
 ```
 
-![Sillen diagram example](ex24_e.png "Sillen diagram example")
+![Sillén-Diagramm 0.01 M H2Pyr+ & 0.001 M Gly-](sillen_example.png "Sillén-Diagramm 0.01 M H2Pyr+ & 0.001 M Gly-")

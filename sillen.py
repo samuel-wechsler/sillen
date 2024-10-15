@@ -13,11 +13,108 @@ import interplot as ip
 from acid import Acid
 
 
-PHG_LINEWIDTH = 10
+PHG_LINEWIDTH = 8
 PHG_OPACITY = 0.4
 
 
-def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
+def plot_sillen(
+    acids,
+    deprot_levels=None,
+    phg_fine_line=False,
+    half_scale=False,
+    width=600,
+    pH_range=np.linspace(0, 14, 100),
+    fig=None,
+    **kwargs,
+):
+    """
+    Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
+    and initial concentration C.
+
+    Args:
+        pKa (list of float): List of pKa values for the acid.
+        C (float): Initial acid concentration.
+        pH_range (numpy.ndarray, optional): pH values for the x-axis (default is a range from 0 to 14).
+
+    The function generates a Sillén diagram showing the pH-dependent concentration of species with different protonation states.
+    """
+    if not isinstance(acids, list):
+        acids = [acids]
+
+    def mpl_grid(fig, ax):
+        ax[0, 0].grid(True, which='major', linestyle='-',
+                      linewidth=0.5, color='black')
+        ax[0, 0].grid(True, which='minor', linestyle='--',
+                      linewidth=0.2, color='gray')
+        ax[0, 0].xaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0, 0].yaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0, 0].xaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        ax[0, 0].yaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        return fig, ax
+
+    # create plot
+    args = dict(
+        fig=fig,
+        interactive=False,
+        title="Sillén-Diagram",
+        xlabel="pH",
+        ylabel="log[Spezies]",
+        xlim=(0, 14),
+        ylim=(-7, 0) if half_scale else (-14, 0),
+        fig_size=(width, width / 2 + 60) if half_scale else (width, width + 10),
+        mpl_custom_func=mpl_grid
+    )
+    args.update(kwargs)
+    fig = ip.Plot.init(
+        **args
+    )
+
+    phg_left = [10**-pH for pH in pH_range]
+    phg_right = [10**(-14 + pH) for pH in pH_range]
+
+    for acid, deprot_level in ip.zip_smart(acids, deprot_levels):
+        # create list of concentrations for each protonation state
+        for i in range(len(acid.pKa)+1):
+            logc = [acid.logc(i, pH) for pH in pH_range]
+            fig.add_line(pH_range, logc, label=(
+                re.sub(r'[{}_^$]?(:?\\mathrm)?', r'', acid.__repr__(i))
+                if fig.interactive
+                else acid.__repr__(i)
+            ))
+            if deprot_level is not None and i < deprot_level:
+                phg_left += 10**np.array(logc)
+            if deprot_level is not None and i > deprot_level:
+                phg_right += 10**np.array(logc)
+
+    if deprot_levels is not None:
+        fig.add_line(pH_range, np.log10(phg_left), label='PHG links', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="blue")
+        fig.add_line(pH_range, np.log10(phg_right), label='PHG rechts', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="red")
+        if phg_fine_line:
+            fig.add_line(pH_range, np.log10(phg_left), opacity=0.8, label=None, color="blue", line_style=":")
+            fig.add_line(pH_range, np.log10(phg_right), opacity=0.8, label=None, color="red", line_style=":")
+
+    # plot H, and OH
+    fig.add_line(
+        pH_range,
+        [-pH for pH in pH_range],
+        linewidth=0.5,
+        label='H+' if fig.interactive else '$H^+$',
+        color='black',
+    )
+    fig.add_line(
+        pH_range,
+        [-14 + pH for pH in pH_range],
+        linewidth=0.5,
+        label='OH-' if fig.interactive else '$OH^-$',
+        color='black',
+    )
+
+    fig.post_process()
+
+    return fig
+
+
+def plot_sillen_old(acids, pH_range=np.linspace(0, 14, 100)):
     """
     Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
     and initial concentration C.
@@ -83,83 +180,7 @@ def plot_sillen(acids, pH_range=np.linspace(0, 14, 100)):
     plt.show()
 
 
-def plot_sillen_interactive(
-    acids,
-    deprot_levels=None,
-    pH_range=np.linspace(0, 14, 100),
-    fig=None,
-    **kwargs,
-):
-    """
-    Plots Sillén diagram for acids with n dissociable protons given their respective pKa values
-    and initial concentration C.
-
-    Args:
-        pKa (list of float): List of pKa values for the acid.
-        C (float): Initial acid concentration.
-        pH_range (numpy.ndarray, optional): pH values for the x-axis (default is a range from 0 to 14).
-
-    The function generates a Sillén diagram showing the pH-dependent concentration of species with different protonation states.
-    """
-    if not isinstance(acids, list):
-        acids = [acids]
-
-    def mpl_grid(fig, ax):
-        ax[0, 0].grid(True, which='major', linestyle='-',
-                linewidth=0.5, color='black')
-        ax[0, 0].grid(True, which='minor', linestyle='--',
-                linewidth=0.2, color='gray')
-        ax[0, 0].xaxis.set_major_locator(plt.MultipleLocator(1))
-        ax[0, 0].yaxis.set_major_locator(plt.MultipleLocator(1))
-        ax[0, 0].xaxis.set_minor_locator(plt.MultipleLocator(0.2))
-        ax[0, 0].yaxis.set_minor_locator(plt.MultipleLocator(0.2))
-        return fig, ax
-
-    # create plot
-    args = dict(
-        fig=fig,
-        interactive=False,
-        title="Sillén diagram",
-        xlabel="pH",
-        ylabel="log[Spezies]",
-        xlim=(0, 14),
-        ylim=(-14, 0),
-        mpl_custom_func=mpl_grid
-    )
-    args.update(kwargs)
-    fig = ip.Plot.init(
-        **args
-    )
-
-    phg_left = [10**-pH for pH in pH_range]
-    phg_right = [10**(-14 + pH) for pH in pH_range]
-
-    for acid, deprot_level in ip.zip_smart(acids, deprot_levels):
-        # create list of concentrations for each protonation state
-        for i in range(len(acid.pKa)+1):
-            logc = [acid.logc(i, pH) for pH in pH_range]
-            fig.add_line(pH_range, logc, label=re.sub(r'[{}_^$]?(:?\\mathrm)?', r'', acid.__repr__(i)))
-            if deprot_level is not None and i < deprot_level:
-                phg_left += 10**np.array(logc)
-            if deprot_level is not None and i > deprot_level:
-                phg_right += 10**np.array(logc)
-
-    if deprot_levels is not None:
-        fig.add_line(pH_range, np.log10(phg_left), label='PHG left side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="blue")
-        fig.add_line(pH_range, np.log10(phg_right), label='PHG right side', linewidth=PHG_LINEWIDTH, opacity=PHG_OPACITY, color="red")
-
-    # plot H, and OH
-    fig.add_line(pH_range, [-pH for pH in pH_range],
-            linewidth=0.5, label='H+', color='black')
-    fig.add_line(pH_range, [-14 + pH for pH in pH_range], linewidth=0.5,
-            label='OH-', color='black')
-
-    fig.post_process()
-
-    return fig
-
-# a = Acid([4.75, 8.4, 12.3, 13.5], 0.1, name="A")
-b = Acid([3.13, 4.76, 6.4], 0.1, name="PO4", charge=-3)
-
 if __name__ == "__main__":
-    plot_sillen([b])
+    # a = Acid([4.75, 8.4, 12.3, 13.5], 0.1, name="A")
+    b = Acid([3.13, 4.76, 6.4], 0.1, name="PO4", charge=-3)
+    plot_sillen([b]).show()
