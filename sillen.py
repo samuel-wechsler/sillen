@@ -105,19 +105,20 @@ def plot_sillen_interactive(
         acids = [acids]
 
     def mpl_grid(fig, ax):
-        ax[0,0].grid(True, which='major', linestyle='-',
+        ax[0, 0].grid(True, which='major', linestyle='-',
                 linewidth=0.5, color='black')
-        ax[0,0].grid(True, which='minor', linestyle='--',
+        ax[0, 0].grid(True, which='minor', linestyle='--',
                 linewidth=0.2, color='gray')
-        ax[0,0].xaxis.set_major_locator(plt.MultipleLocator(1))
-        ax[0,0].yaxis.set_major_locator(plt.MultipleLocator(1))
-        ax[0,0].xaxis.set_minor_locator(plt.MultipleLocator(0.2))
-        ax[0,0].yaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        ax[0, 0].xaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0, 0].yaxis.set_major_locator(plt.MultipleLocator(1))
+        ax[0, 0].xaxis.set_minor_locator(plt.MultipleLocator(0.2))
+        ax[0, 0].yaxis.set_minor_locator(plt.MultipleLocator(0.2))
         return fig, ax
 
     # create plot
     args = dict(
         fig=fig,
+        interactive=False,
         title="Sillén diagram",
         xlabel="pH",
         ylabel="log[Spezies]",
